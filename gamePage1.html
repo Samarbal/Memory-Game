@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Match Game</title>
+    <link rel="stylesheet" href="gameStyle.css">
+    <script src="gameScript.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+
+
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2> Welcome, <span id="username"></span>!</h2>
+            <div class="info-bar">
+                ⏱ Time: <span id="time">0</span>s |
+                🔁 Moves: <span id="moves">0</span> |
+                ✅ Matches: <span id="matches">0</span>
+            </div>
+        </header>
+
+        <!-- board -->
+        <div class="game-board" id="game-board"></div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button id="new-game"><i class="fas fa-redo"></i> New Game</button>
+            <button id="leaderboard"><i class="fas fa-trophy"></i> Leaderboard</button>
+            <button id="main-menu"><i class="fas fa-home"></i> Main Menu</button>
+          </div>
+      
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2025 Samar Balousha</p>
+    </footer>
+</body>
+</html>
