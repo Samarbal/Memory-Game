@@ -1,0 +1,50 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fun Memory Game </title>
+
+    <!-- link with css file  -->
+    <link rel="stylesheet" href="gameStyle.css">
+    <!-- link with javascript file  -->
+    <script src="gameScript.js" defer type="module"></script>
+
+    <!-- link with Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- link with Font Awesome for icons -->   
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+
+</head>
+<body>
+    <body>
+        <div class="container">
+          <div class="game-box">
+            <img src="asset/brian-icon.png" alt="Brain Icon" class="icon" />
+            <h1>Memory Match</h1>
+            <p class="subtitle">Test your memory with this fun card matching game!</p>
+      
+            <label for="username">Enter your name:</label>
+            <input type="text" id="username" placeholder="Your name..." />
+      
+            <p class="difficulty-title">Choose difficulty:</p>
+            <div class="difficulty-options">
+              <div class="difficulty active" data-level="easy">Easy<br><small>8 cards (4 pairs)</small></div>
+              <div class="difficulty" data-level="medium">Medium<br><small>12 cards (6 pairs)</small></div>
+              <div class="difficulty" data-level="hard">Hard<br><small>16 cards (8 pairs)</small></div>
+            </div>
+      
+            <button id="start-btn">Start Game 🎮</button>
+          </div>
+
+
+    </div>
+
+    
+</body>
+
+<!-- Footer -->
+  <footer>
+      <p>&copy; 2025 Samar Balousha</p>
+    </footer>
+</html>
