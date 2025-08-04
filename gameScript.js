@@ -9,12 +9,20 @@ document.addEventListener("DOMContentLoaded", () => {
   } else if (isGamePage) {
     // Game page logic (gamePage1.html)
     initializeGame();
+  } else {
+    // Neither page detected - log for debugging
+    console.warn("Memory Game: Could not detect which page this is running on");
   }
 });
 
 function initializeMainMenu() {
   // Handle difficulty selection
   const difficultyOptions = document.querySelectorAll('.difficulty');
+  if (difficultyOptions.length === 0) {
+    console.error("Memory Game: No difficulty options found");
+    return;
+  }
+  
   difficultyOptions.forEach(option => {
     option.addEventListener('click', () => {
       // Remove active class from all options
@@ -28,6 +36,20 @@ function initializeMainMenu() {
   const usernameInput = document.getElementById("username");
   const warningDiv = document.getElementById("username-warning");
   const startBtn = document.getElementById("start-btn");
+
+  // Check if all required elements exist
+  if (!usernameInput) {
+    console.error("Memory Game: Username input field not found");
+    return;
+  }
+  if (!warningDiv) {
+    console.error("Memory Game: Warning div not found");
+    return;
+  }
+  if (!startBtn) {
+    console.error("Memory Game: Start button not found");
+    return;
+  }
 
   startBtn.addEventListener("click", () => {
     const username = usernameInput.value.trim();
@@ -52,7 +74,9 @@ function initializeMainMenu() {
 
   // Clear warning on input
   usernameInput.addEventListener("input", () => {
-    warningDiv.textContent = "";
+    if (warningDiv) {
+      warningDiv.textContent = "";
+    }
   });
 }
 
@@ -61,8 +85,19 @@ function initializeGame() {
   const username = localStorage.getItem('username') || 'Player';
   const difficulty = localStorage.getItem('difficulty') || 'easy'; 
 
-  document.getElementById("username").textContent = username;
+  // Safely update username display
+  const usernameElement = document.getElementById("username");
+  if (usernameElement) {
+    usernameElement.textContent = username;
+  } else {
+    console.error("Memory Game: Username display element not found");
+  }
+
   const gameBoard = document.getElementById("game-board");
+  if (!gameBoard) {
+    console.error("Memory Game: Game board element not found");
+    return;
+  }
 
   // number of pairs using key-value lookups instead of the traditional if statement 
   const totalPairs = { easy: 4, medium: 6, hard: 8 }[difficulty];
@@ -113,12 +148,24 @@ function initializeGame() {
 
           if (flippedCards.length === 2) {
               moves++;
-              document.getElementById("moves").textContent = moves;
+              // Safely update moves display
+              const movesElement = document.getElementById("moves");
+              if (movesElement) {
+                movesElement.textContent = moves;
+              } else {
+                console.error("Memory Game: Moves display element not found");
+              }
 
               const [card1, card2] = flippedCards;
               if (card1.dataset.image === card2.dataset.image) {
                   matches++;
-                  document.getElementById("matches").textContent = matches;
+                  // Safely update matches display
+                  const matchesElement = document.getElementById("matches");
+                  if (matchesElement) {
+                    matchesElement.textContent = matches;
+                  } else {
+                    console.error("Memory Game: Matches display element not found");
+                  }
                   flippedCards = [];
 
                   if (matches === totalPairs) {
@@ -145,18 +192,35 @@ function initializeGame() {
 
   // timer
   let timer = 0;
+  const timerElement = document.getElementById("time");
+  if (!timerElement) {
+    console.error("Memory Game: Timer display element not found");
+  }
+  
   const timerInterval = setInterval(() => { 
       timer++;
-      document.getElementById("time").textContent = timer;
+      if (timerElement) {
+        timerElement.textContent = timer;
+      }
   }, 1000);
 
-  // new game
-  document.getElementById("new-game").addEventListener("click", () => {
-      location.reload();
-  });
+  // new game button
+  const newGameBtn = document.getElementById("new-game");
+  if (newGameBtn) {
+    newGameBtn.addEventListener("click", () => {
+        location.reload();
+    });
+  } else {
+    console.error("Memory Game: New game button not found");
+  }
 
-  // back to main page
-  document.getElementById("main-menu").addEventListener("click", () => {
-      window.location.href = "game.html";
-  });
+  // back to main page button
+  const mainMenuBtn = document.getElementById("main-menu");
+  if (mainMenuBtn) {
+    mainMenuBtn.addEventListener("click", () => {
+        window.location.href = "game.html";
+    });
+  } else {
+    console.error("Memory Game: Main menu button not found");
+  }
 }
