@@ -169,8 +169,17 @@ function initializeGame() {
                   flippedCards = [];
 
                   if (matches === totalPairs) {
+                      // Save the score
+                      const playerName = localStorage.getItem('username') || 'Player';
+                      const currentDifficulty = localStorage.getItem('difficulty') || 'easy';
+                      saveScore(playerName, currentDifficulty, timer, moves);
+                      
                       setTimeout(() => {
                           alert("🎉 You matched all pairs!");
+                          // Show leaderboard after a short delay
+                          setTimeout(() => {
+                              showLeaderboard();
+                          }, 1000);
                       }, 500);
                   }
               } else {
@@ -223,4 +232,179 @@ function initializeGame() {
   } else {
     console.error("Memory Game: Main menu button not found");
   }
+
+  // Initialize leaderboard functionality
+  initializeLeaderboard();
+}
+
+// ===== LEADERBOARD FUNCTIONS =====
+
+// Save a new score to localStorage
+function saveScore(playerName, difficulty, time, moves) {
+    try {
+        const scoreEntry = {
+            playerName: playerName,
+            difficulty: difficulty,
+            time: time,
+            moves: moves,
+            date: new Date().toISOString()
+        };
+
+        const existingScores = JSON.parse(localStorage.getItem('memoryGameScores') || '[]');
+        existingScores.push(scoreEntry);
+        
+        // Sort by time (faster = better) and then by moves (fewer = better)
+        existingScores.sort((a, b) => {
+            if (a.time !== b.time) {
+                return a.time - b.time;
+            }
+            return a.moves - b.moves;
+        });
+        
+        // Keep only top 50 scores
+        const topScores = existingScores.slice(0, 50);
+        localStorage.setItem('memoryGameScores', JSON.stringify(topScores));
+        
+        console.log('Score saved successfully:', scoreEntry);
+        return true;
+    } catch (error) {
+        console.error('Error saving score:', error);
+        return false;
+    }
+}
+
+// Get top scores for a specific difficulty
+function getTopScores(difficulty, limit = 10) {
+    try {
+        const allScores = JSON.parse(localStorage.getItem('memoryGameScores') || '[]');
+        const difficultyScores = allScores.filter(score => score.difficulty === difficulty);
+        return difficultyScores.slice(0, limit);
+    } catch (error) {
+        console.error('Error getting scores:', error);
+        return [];
+    }
+}
+
+// Format time from seconds to MM:SS
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+// Format date for display
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+// Display leaderboard for a specific difficulty
+function displayLeaderboard(difficulty) {
+    const leaderboardContent = document.getElementById('leaderboard-content');
+    if (!leaderboardContent) {
+        console.error('Leaderboard content element not found');
+        return;
+    }
+
+    const scores = getTopScores(difficulty, 10);
+    
+    if (scores.length === 0) {
+        leaderboardContent.innerHTML = `
+            <div class="empty-leaderboard">
+                <p>No scores yet for ${difficulty} difficulty!</p>
+                <p>Complete a game to see your score here.</p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = '';
+    scores.forEach((score, index) => {
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}.`;
+        html += `
+            <div class="leaderboard-entry">
+                <div class="player-info">
+                    <div class="player-name">${medal} ${score.playerName}</div>
+                    <div class="player-date">${formatDate(score.date)}</div>
+                </div>
+                <div class="score-info">
+                    <div class="score-time">${formatTime(score.time)}</div>
+                    <div class="score-difficulty">${score.difficulty} • ${score.moves} moves</div>
+                </div>
+            </div>
+        `;
+    });
+    
+    leaderboardContent.innerHTML = html;
+}
+
+// Show the leaderboard modal
+function showLeaderboard() {
+    const modal = document.getElementById('leaderboard-modal');
+    if (!modal) {
+        console.error('Leaderboard modal not found');
+        return;
+    }
+    
+    modal.style.display = 'block';
+    
+    // Set default difficulty to current game difficulty or 'easy'
+    const currentDifficulty = localStorage.getItem('difficulty') || 'easy';
+    
+    // Update tab buttons
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+    const activeTab = document.querySelector(`[data-difficulty="${currentDifficulty}"]`);
+    if (activeTab) {
+        activeTab.classList.add('active');
+    }
+    
+    // Display leaderboard for current difficulty
+    displayLeaderboard(currentDifficulty);
+}
+
+// Hide the leaderboard modal
+function hideLeaderboard() {
+    const modal = document.getElementById('leaderboard-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Initialize leaderboard functionality
+function initializeLeaderboard() {
+    // Add click handlers for difficulty tabs
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            tabButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const difficulty = btn.dataset.difficulty;
+            displayLeaderboard(difficulty);
+        });
+    });
+
+    // Add click handler for close button
+    const closeBtn = document.querySelector('.close-modal');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', hideLeaderboard);
+    }
+
+    // Close modal when clicking outside
+    const modal = document.getElementById('leaderboard-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                hideLeaderboard();
+            }
+        });
+    }
+
+    // Add leaderboard button functionality
+    const leaderboardBtn = document.getElementById('leaderboard');
+    if (leaderboardBtn) {
+        leaderboardBtn.addEventListener('click', showLeaderboard);
+    } else {
+        console.error('Leaderboard button not found');
+    }
 }
