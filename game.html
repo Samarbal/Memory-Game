@@ -36,6 +36,9 @@
             </div>
       
             <button id="start-btn">Start Game 🎮</button>
+            <button id="leaderboard-btn" class="leaderboard-menu-btn">
+                <i class="fas fa-trophy"></i> View Leaderboard
+            </button>
           </div>
 
 
@@ -44,6 +47,26 @@
         <!-- game board -->
         <div class="game-board hidden"></div>
   </div>
+
+    <!-- Leaderboard Modal -->
+    <div id="leaderboard-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 Leaderboard</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="difficulty-tabs">
+                    <button class="tab-btn active" data-difficulty="easy">Easy</button>
+                    <button class="tab-btn" data-difficulty="medium">Medium</button>
+                    <button class="tab-btn" data-difficulty="hard">Hard</button>
+                </div>
+                <div id="leaderboard-content">
+                    <!-- Leaderboard entries will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
   <footer>

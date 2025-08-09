@@ -57,6 +57,45 @@
         </div>
     </div>
 
+    <!-- Win Screen Modal -->
+    <div id="win-modal" class="modal">
+        <div class="modal-content win-modal-content">
+            <div class="win-header">
+                <div class="trophy-icon">🏆</div>
+                <h2>Congratulations!</h2>
+                <p class="win-subtitle">You've completed the memory challenge!</p>
+            </div>
+            <div class="win-stats">
+                <div class="stat-item">
+                    <i class="fas fa-clock"></i>
+                    <span class="stat-label">Time:</span>
+                    <span id="win-time" class="stat-value">0s</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-sync-alt"></i>
+                    <span class="stat-label">Moves:</span>
+                    <span id="win-moves" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-layer-group"></i>
+                    <span class="stat-label">Difficulty:</span>
+                    <span id="win-difficulty" class="stat-value">Easy</span>
+                </div>
+            </div>
+            <div class="win-actions">
+                <button id="play-again-btn" class="win-btn primary">
+                    <i class="fas fa-redo"></i> Play Again
+                </button>
+                <button id="leaderboard-win-btn" class="win-btn secondary">
+                    <i class="fas fa-trophy"></i> Leaderboard
+                </button>
+                <button id="main-menu-win-btn" class="win-btn secondary">
+                    <i class="fas fa-home"></i> Main Menu
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer>
         <p>&copy; 2025 Samar Balousha</p>

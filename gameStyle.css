@@ -7,16 +7,24 @@
 
 body{
   background: linear-gradient(to bottom, #f7f5f5, #df9696);
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
+  padding: 0;
+  margin: 0;
 }
 
 .container {
   width: 100%;
-  max-width: 400px;
+  max-width: 700px;
   padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .game-box {
@@ -113,33 +121,134 @@ input:focus{
   transform: scale(1.05);
 }
 
-/* game board */
-.game-board{
-  display: grid;
-  gap: 10px;
+.leaderboard-menu-btn {
+  background-color: #6c757d;
+  color: white;
+  padding: 12px;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  font-size: 16px;
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  
+  gap: 8px;
 }
 
+.leaderboard-menu-btn:hover {
+  background-color: #5a6268;
+  transform: scale(1.05);
+}
+
+/* Game board with different layouts based on difficulty */
+.game-board {
+  display: grid;
+  gap: 16px;
+  justify-content: center;
+  margin: 25px auto;
+  padding: 25px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Easy: 2 rows × 4 columns (8 cards) */
+.game-board.easy {
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  max-width: 480px;
+}
+
+/* Medium: 3 rows × 4 columns (12 cards) */
+.game-board.medium {
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  max-width: 480px;
+}
+
+/* Hard: 4 rows × 4 columns (16 cards) */
+.game-board.hard {
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  max-width: 480px;
+}
 
 .card {
   background-color: #ffffff;
-  width: 80px;
-  height: 100px;
-  border-radius: 8px;
+  width: 100px;
+  height: 120px;
+  border-radius: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 24px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
   cursor: pointer;
   user-select: none;
-  transition: transform 0.3s;
+  transition: all 0.3s ease;
+  position: relative;
+  perspective: 1000px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
 }
 
 .card.flipped {
   background-color: #ffd700;
+}
+
+.card.disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.card.matched {
+  opacity: 0.8;
+  transform: scale(0.95);
+  cursor: default;
+}
+
+.card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.4s ease;
+  transform-style: preserve-3d;
+}
+
+.card.flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-back {
+  background: linear-gradient(135deg, #c44c69, #eca4b5);
+}
+
+.card-front {
+  background: linear-gradient(135deg, #ffd700, #ffed4e);
+  transform: rotateY(180deg);
 }
 
 .hidden {
@@ -149,28 +258,46 @@ input:focus{
 header {
   text-align: center;
   margin-bottom: 20px;
+  width: 100%;
+}
+
+header h2 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 24px;
 }
 
 .info-bar {
   font-size: 16px;
   color: #444;
   margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .controls {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
   margin-top: 20px;
+  flex-wrap: wrap;
 }
 .controls button {
   background-color: #c44c69;
   color: white;
   border: none;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  transition: 0.3s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .controls button:hover {
   background-color: #a73755;
@@ -181,6 +308,19 @@ header {
   height: 100%;
   object-fit: cover;
   border-radius: 8px;
+}
+
+/* Footer Styles */
+footer {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  text-align: center;
+  padding: 15px;
+  margin-top: auto;
+  width: 100%;
+  color: #555;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 /* Leaderboard Modal Styles */
@@ -344,25 +484,326 @@ header {
     font-style: italic;
 }
 
-/* Responsive Design */
+/* Win Screen Modal Styles */
+.win-modal-content {
+    text-align: center;
+    max-width: 500px;
+    animation: winModalSlideIn 0.5s ease-out;
+}
+
+@keyframes winModalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.8) translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.win-header {
+    margin-bottom: 30px;
+}
+
+.trophy-icon {
+    font-size: 60px;
+    margin-bottom: 15px;
+    animation: trophyBounce 1s ease-in-out;
+}
+
+@keyframes trophyBounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+.win-header h2 {
+    color: #c44c69;
+    margin: 0 0 10px 0;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.win-subtitle {
+    color: #666;
+    margin: 0;
+    font-size: 16px;
+}
+
+.win-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 30px 0;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    min-width: 120px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-2px);
+}
+
+.stat-item i {
+    font-size: 24px;
+    color: #c44c69;
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+}
+
+.win-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+.win-btn {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.win-btn.primary {
+    background: linear-gradient(135deg, #c44c69, #a83a5a);
+    color: white;
+    box-shadow: 0 4px 15px rgba(196, 76, 105, 0.3);
+}
+
+.win-btn.primary:hover {
+    background: linear-gradient(135deg, #a83a5a, #8a2f4a);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(196, 76, 105, 0.4);
+}
+
+.win-btn.secondary {
+    background: linear-gradient(135deg, #6c757d, #5a6268);
+    color: white;
+    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+}
+
+.win-btn.secondary:hover {
+    background: linear-gradient(135deg, #5a6268, #495057);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+}
+
+/* Enhanced Responsive Design */
+
+/* Large tablets and small desktops */
+@media (max-width: 768px) {
+    .container {
+        max-width: 95%;
+        padding: 15px;
+    }
+    
+    .game-board {
+        gap: 14px;
+        padding: 20px;
+    }
+    
+    .game-board.easy,
+    .game-board.medium,
+    .game-board.hard {
+        max-width: 420px;
+    }
+    
+    .card {
+        width: 90px;
+        height: 110px;
+    }
+}
+
+/* Mobile phones - portrait */
 @media (max-width: 600px) {
+    body {
+        padding: 10px 0;
+    }
+    
+    .container {
+        max-width: 100%;
+        padding: 10px;
+    }
+    
+    .game-box {
+        padding: 20px 15px;
+        margin: 10px;
+    }
+    
+    /* Game board mobile adjustments */
+    .game-board {
+        padding: 15px;
+        gap: 10px;
+        margin: 15px auto;
+    }
+    
+    .game-board.easy {
+        max-width: 340px;
+    }
+    
+    .game-board.medium {
+        max-width: 340px;
+    }
+    
+    .game-board.hard {
+        max-width: 340px;
+    }
+    
+    .card {
+        width: 75px;
+        height: 90px;
+        border-radius: 8px;
+    }
+    
+    /* Header adjustments */
+    header h2 {
+        font-size: 20px;
+    }
+    
+    .info-bar {
+        font-size: 14px;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+    
+    /* Controls mobile layout */
+    .controls {
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .controls button {
+        width: 100%;
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    /* Modal responsive */
     .modal-content {
-        margin: 10% auto;
+        margin: 5% auto;
         width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
     }
     
     .difficulty-tabs {
         flex-direction: column;
-        gap: 5px;
+        gap: 8px;
+    }
+    
+    .tab-btn {
+        padding: 12px 15px;
+        font-size: 14px;
     }
     
     .leaderboard-entry {
         flex-direction: column;
         text-align: center;
-        gap: 5px;
+        gap: 8px;
+        padding: 15px;
     }
     
     .score-info {
         text-align: center;
+    }
+    
+    /* Win screen mobile */
+    .win-actions {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .win-btn {
+        min-width: 100%;
+        padding: 15px 20px;
+        font-size: 16px;
+    }
+    
+    .win-stats {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .stat-item {
+        min-width: auto;
+        width: 100%;
+        padding: 20px;
+    }
+    
+    /* Footer mobile */
+    footer {
+        padding: 12px;
+        font-size: 12px;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 400px) {
+    .container {
+        padding: 5px;
+    }
+    
+    .game-board {
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .game-board.easy,
+    .game-board.medium,
+    .game-board.hard {
+        max-width: 300px;
+    }
+    
+    .card {
+        width: 65px;
+        height: 80px;
+        border-radius: 6px;
+    }
+    
+    .game-box {
+        margin: 5px;
+        padding: 15px 10px;
     }
 }

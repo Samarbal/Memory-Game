@@ -78,162 +78,268 @@ function initializeMainMenu() {
       warningDiv.textContent = "";
     }
   });
+
+  // Add leaderboard button functionality for main menu
+  const leaderboardBtn = document.getElementById("leaderboard-btn");
+  if (leaderboardBtn) {
+    leaderboardBtn.addEventListener("click", () => {
+      showLeaderboard();
+    });
+  }
+
+  // Initialize leaderboard functionality for main menu
+  initializeLeaderboard();
 }
 
 function initializeGame() {
-  // get data from local storage, initialize the variables
+  // Get data from localStorage and initialize variables
   const username = localStorage.getItem('username') || 'Player';
-  const difficulty = localStorage.getItem('difficulty') || 'easy'; 
+  const difficulty = localStorage.getItem('difficulty') || 'easy';
 
-  // Safely update username display
-  const usernameElement = document.getElementById("username");
-  if (usernameElement) {
-    usernameElement.textContent = username;
-  } else {
-    console.error("Memory Game: Username display element not found");
-  }
+  // Cache DOM elements (store once to avoid repeated lookups)
+  const domElements = {
+    username: document.getElementById("username"),
+    gameBoard: document.getElementById("game-board"),
+    timer: document.getElementById("time"),
+    moves: document.getElementById("moves"),
+    matches: document.getElementById("matches"),
+    newGameBtn: document.getElementById("new-game"),
+    mainMenuBtn: document.getElementById("main-menu")
+  };
 
-  const gameBoard = document.getElementById("game-board");
-  if (!gameBoard) {
+  // Validate required elements
+  if (!domElements.gameBoard) {
     console.error("Memory Game: Game board element not found");
     return;
   }
 
-  // number of pairs using key-value lookups instead of the traditional if statement 
-  const totalPairs = { easy: 4, medium: 6, hard: 8 }[difficulty];
+  // Update username display
+  if (domElements.username) {
+    domElements.username.textContent = username;
+  } else {
+    console.error("Memory Game: Username display element not found");
+  }
 
-  // cards list 
+  // Game state variables
+  const gameState = {
+    totalPairs: { easy: 4, medium: 6, hard: 8 }[difficulty],
+    flippedCards: [],
+    cardElements: [], // Store card elements for easy access
+    matches: 0,
+    moves: 0,
+    timer: 0,
+    timerInterval: null,
+    isFlipping: false, // Flip animation lock
+    gameEnded: false // Prevent timer resume
+  };
+
+  // Card images array
   const images = [
-      "asset/img-1.png",
-      "asset/img-2.png",
-      "asset/img-3.png",
-      "asset/img-4.png",
-      "asset/img-5.png",
-      "asset/img-6.png",
-      "asset/img-7.png",
-      "asset/img-8.png"
+    "asset/img-1.png", "asset/img-2.png", "asset/img-3.png", "asset/img-4.png",
+    "asset/img-5.png", "asset/img-6.png", "asset/img-7.png", "asset/img-8.png"
   ];
 
-  // select the images for the game
-  let selected = images.slice(0, totalPairs);
-  // repeat the images
-  let cards = [...selected, ...selected]; 
+  // Helper function to update display elements safely
+  function updateDisplay(elementKey, value) {
+    if (domElements[elementKey]) {
+      domElements[elementKey].textContent = value;
+    } else {
+      console.error(`Memory Game: ${elementKey} display element not found`);
+    }
+  }
 
-  // shuffle the cards
-  cards.sort(() => Math.random() - 0.5);
+  // Function to create card with proper structure (CSS-based flip)
+  function createCard(imgSrc, index) {
+    const card = document.createElement("div");
+    card.classList.add("card");
+    card.dataset.image = imgSrc;
+    card.dataset.index = index;
 
-  // create the cards
-  const board = document.getElementById("game-board");
-  board.innerHTML = ""; // clear previous if any
+    // Create card structure for CSS-based flipping
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-face card-back">
+          <img src="asset/back-img.png" alt="Back of card" />
+        </div>
+        <div class="card-face card-front">
+          <img src="${imgSrc}" alt="Card Image" />
+        </div>
+      </div>
+    `;
 
-  // Handle Card Flipping and Matching
-  let flippedCards = [];
-  let matches = 0;
-  let moves = 0;
+    // Store card element for easy access
+    gameState.cardElements.push(card);
+    
+    return card;
+  }
 
-  cards.forEach((imgSrc) => {
-      const card = document.createElement("div");
-      card.classList.add("card");
-      card.dataset.image = imgSrc;
+  // Function to flip card (using CSS classes instead of innerHTML)
+  function flipCard(card, showFront = true) {
+    if (showFront) {
+      card.classList.add("flipped");
+    } else {
+      card.classList.remove("flipped");
+    }
+  }
 
-      // back card
-      card.innerHTML = `<img src="asset/back-img.png" class="card-back" alt="Back of card" />`;
+  // Function to disable card
+  function disableCard(card) {
+    card.classList.add("disabled");
+  }
 
-      card.addEventListener("click", () => {
-          if (card.classList.contains("flipped") || flippedCards.length >= 2) return;
+  // Function to mark card as matched
+  function markCardAsMatched(card) {
+    card.classList.add("matched");
+    disableCard(card);
+  }
 
-          card.classList.add("flipped");
-          card.innerHTML = `<img src="${imgSrc}" alt="Card Image" />`;
-          flippedCards.push(card);
+  // Function to handle card click logic
+  function handleCardClick(card) {
+    // Prevent clicks during flip animation, on flipped cards, disabled cards, or when 2 cards are already flipped
+    if (gameState.isFlipping || 
+        card.classList.contains("flipped") || 
+        card.classList.contains("disabled") ||
+        gameState.flippedCards.length >= 2 ||
+        gameState.gameEnded) {
+      return;
+    }
 
-          if (flippedCards.length === 2) {
-              moves++;
-              // Safely update moves display
-              const movesElement = document.getElementById("moves");
-              if (movesElement) {
-                movesElement.textContent = moves;
-              } else {
-                console.error("Memory Game: Moves display element not found");
-              }
+    // Set flip lock
+    gameState.isFlipping = true;
+    
+    // Flip the card
+    flipCard(card, true);
+    gameState.flippedCards.push(card);
 
-              const [card1, card2] = flippedCards;
-              if (card1.dataset.image === card2.dataset.image) {
-                  matches++;
-                  // Safely update matches display
-                  const matchesElement = document.getElementById("matches");
-                  if (matchesElement) {
-                    matchesElement.textContent = matches;
-                  } else {
-                    console.error("Memory Game: Matches display element not found");
-                  }
-                  flippedCards = [];
+    // Release flip lock after animation
+    setTimeout(() => {
+      gameState.isFlipping = false;
+    }, 200);
 
-                  if (matches === totalPairs) {
-                      // Save the score
-                      const playerName = localStorage.getItem('username') || 'Player';
-                      const currentDifficulty = localStorage.getItem('difficulty') || 'easy';
-                      saveScore(playerName, currentDifficulty, timer, moves);
-                      
-                      setTimeout(() => {
-                          alert("🎉 You matched all pairs!");
-                          // Show leaderboard after a short delay
-                          setTimeout(() => {
-                              showLeaderboard();
-                          }, 1000);
-                      }, 500);
-                  }
-              } else {
-                  setTimeout(() => {
-                      card1.classList.remove("flipped");
-                      card2.classList.remove("flipped");
+    // Check for matches when 2 cards are flipped
+    if (gameState.flippedCards.length === 2) {
+      gameState.moves++;
+      updateDisplay('moves', gameState.moves);
 
-                      card1.innerHTML = `<img src="asset/back-img.png" class="card-back" alt="Back of card" />`;
-                      card2.innerHTML = `<img src="asset/back-img.png" class="card-back" alt="Back of card" />`;
+      const [card1, card2] = gameState.flippedCards;
+      
+      if (card1.dataset.image === card2.dataset.image) {
+        // Match found
+        setTimeout(() => {
+          markCardAsMatched(card1);
+          markCardAsMatched(card2);
+          gameState.matches++;
+          updateDisplay('matches', gameState.matches);
+          gameState.flippedCards = [];
 
-                      flippedCards = [];
-                  }, 1000);
-              }
+          // Check for game completion
+          if (gameState.matches === gameState.totalPairs) {
+            handleGameWin();
           }
-      });
-
-      board.appendChild(card);
-  });
-
-  // timer
-  let timer = 0;
-  const timerElement = document.getElementById("time");
-  if (!timerElement) {
-    console.error("Memory Game: Timer display element not found");
-  }
-  
-  const timerInterval = setInterval(() => { 
-      timer++;
-      if (timerElement) {
-        timerElement.textContent = timer;
+        }, 500);
+      } else {
+        // No match - flip cards back
+        setTimeout(() => {
+          flipCard(card1, false);
+          flipCard(card2, false);
+          gameState.flippedCards = [];
+        }, 1000);
       }
-  }, 1000);
+    }
+  }
 
-  // new game button
-  const newGameBtn = document.getElementById("new-game");
-  if (newGameBtn) {
-    newGameBtn.addEventListener("click", () => {
+  // Function to handle game win
+  function handleGameWin() {
+    gameState.gameEnded = true;
+    
+    // Stop the timer (ensure no resume)
+    if (gameState.timerInterval) {
+      clearInterval(gameState.timerInterval);
+      gameState.timerInterval = null;
+    }
+    
+    // Save the score
+    const playerName = localStorage.getItem('username') || 'Player';
+    const currentDifficulty = localStorage.getItem('difficulty') || 'easy';
+    saveScore(playerName, currentDifficulty, gameState.timer, gameState.moves);
+    
+    // Show win screen after a short delay
+    setTimeout(() => {
+      showWinScreen(gameState.timer, gameState.moves, currentDifficulty);
+    }, 500);
+  }
+
+  // Initialize game board
+  function initializeBoard() {
+    // Select and shuffle cards
+    const selectedImages = images.slice(0, gameState.totalPairs);
+    const cardPairs = [...selectedImages, ...selectedImages];
+    cardPairs.sort(() => Math.random() - 0.5);
+
+    // Clear board and reset classes
+    domElements.gameBoard.innerHTML = "";
+    domElements.gameBoard.className = "game-board"; // Reset classes
+    gameState.cardElements = [];
+
+    // Add difficulty-specific class to game board
+    domElements.gameBoard.classList.add(difficulty);
+
+    // Create and append cards
+    cardPairs.forEach((imgSrc, index) => {
+      const card = createCard(imgSrc, index);
+      card.addEventListener("click", () => handleCardClick(card));
+      domElements.gameBoard.appendChild(card);
+    });
+  }
+
+  // Initialize timer
+  function initializeTimer() {
+    if (!domElements.timer) {
+      console.error("Memory Game: Timer display element not found");
+      return;
+    }
+
+    gameState.timerInterval = setInterval(() => {
+      if (!gameState.gameEnded) {
+        gameState.timer++;
+        updateDisplay('timer', gameState.timer);
+      }
+    }, 1000);
+  }
+
+  // Initialize control buttons
+  function initializeControls() {
+    // New game button
+    if (domElements.newGameBtn) {
+      domElements.newGameBtn.addEventListener("click", () => {
+        // Clean up timer before reload
+        if (gameState.timerInterval) {
+          clearInterval(gameState.timerInterval);
+        }
         location.reload();
-    });
-  } else {
-    console.error("Memory Game: New game button not found");
-  }
+      });
+    } else {
+      console.error("Memory Game: New game button not found");
+    }
 
-  // back to main page button
-  const mainMenuBtn = document.getElementById("main-menu");
-  if (mainMenuBtn) {
-    mainMenuBtn.addEventListener("click", () => {
+    // Main menu button
+    if (domElements.mainMenuBtn) {
+      domElements.mainMenuBtn.addEventListener("click", () => {
+        // Clean up timer before navigation
+        if (gameState.timerInterval) {
+          clearInterval(gameState.timerInterval);
+        }
         window.location.href = "game.html";
-    });
-  } else {
-    console.error("Memory Game: Main menu button not found");
+      });
+    } else {
+      console.error("Memory Game: Main menu button not found");
+    }
   }
 
-  // Initialize leaderboard functionality
+  // Initialize the game
+  initializeBoard();
+  initializeTimer();
+  initializeControls();
   initializeLeaderboard();
 }
 
@@ -406,5 +512,85 @@ function initializeLeaderboard() {
         leaderboardBtn.addEventListener('click', showLeaderboard);
     } else {
         console.error('Leaderboard button not found');
+    }
+}
+
+// ===== WIN SCREEN FUNCTIONS =====
+
+// Show the win screen modal
+function showWinScreen(time, moves, difficulty) {
+    const modal = document.getElementById('win-modal');
+    if (!modal) {
+        console.error('Win modal not found');
+        return;
+    }
+    
+    // Update win screen stats
+    const winTimeElement = document.getElementById('win-time');
+    const winMovesElement = document.getElementById('win-moves');
+    const winDifficultyElement = document.getElementById('win-difficulty');
+    
+    if (winTimeElement) {
+        winTimeElement.textContent = `${time}s`;
+    }
+    if (winMovesElement) {
+        winMovesElement.textContent = moves;
+    }
+    if (winDifficultyElement) {
+        winDifficultyElement.textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+    }
+    
+    // Show the modal
+    modal.style.display = 'block';
+    
+    // Initialize win screen event handlers
+    initializeWinScreen();
+}
+
+// Hide the win screen modal
+function hideWinScreen() {
+    const modal = document.getElementById('win-modal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+// Initialize win screen functionality
+function initializeWinScreen() {
+    // Play again button
+    const playAgainBtn = document.getElementById('play-again-btn');
+    if (playAgainBtn) {
+        playAgainBtn.addEventListener('click', () => {
+            hideWinScreen();
+            location.reload();
+        });
+    }
+    
+    // Main menu button
+    const mainMenuWinBtn = document.getElementById('main-menu-win-btn');
+    if (mainMenuWinBtn) {
+        mainMenuWinBtn.addEventListener('click', () => {
+            hideWinScreen();
+            window.location.href = "game.html";
+        });
+    }
+    
+    // Leaderboard button
+    const leaderboardWinBtn = document.getElementById('leaderboard-win-btn');
+    if (leaderboardWinBtn) {
+        leaderboardWinBtn.addEventListener('click', () => {
+            hideWinScreen();
+            showLeaderboard();
+        });
+    }
+    
+    // Close modal when clicking outside
+    const modal = document.getElementById('win-modal');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                hideWinScreen();
+            }
+        });
     }
 }
