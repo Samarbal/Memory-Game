@@ -329,7 +329,7 @@ function initializeGame() {
         if (gameState.timerInterval) {
           clearInterval(gameState.timerInterval);
         }
-        window.location.href = "game.html";
+        window.location.href = "index.html";
       });
     } else {
       console.error("Memory Game: Main menu button not found");
@@ -571,7 +571,7 @@ function initializeWinScreen() {
     if (mainMenuWinBtn) {
         mainMenuWinBtn.addEventListener('click', () => {
             hideWinScreen();
-            window.location.href = "game.html";
+            window.location.href = "index.html";
         });
     }
     
